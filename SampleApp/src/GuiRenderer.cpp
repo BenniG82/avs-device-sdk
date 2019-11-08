@@ -13,17 +13,24 @@
  * permissions and limitations under the License.
  */
 
+#include <chrono>
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
-
+#include <AVSCommon/Utils/LibcurlUtils/HttpPost.h>
+#include <AVSCommon/Utils/LibcurlUtils/HttpResponseCodes.h>
 #include <AVSCommon/Utils/JSON/JSONUtils.h>
 #include "SampleApp/ConsolePrinter.h"
 #include "SampleApp/GuiRenderer.h"
+
 
 namespace alexaClientSDK {
 namespace sampleApp {
 
 using namespace avsCommon::utils::json;
+using namespace alexaClientSDK::avsCommon::sdkInterfaces;
+using namespace alexaClientSDK::avsCommon::utils::libcurlUtils;
+using namespace std::chrono;
+using namespace rapidjson;
 
 /// Tag for find the AudioItemId in the payload of the RenderPlayerInfo directive
 static const std::string AUDIO_ITEM_ID_TAG("audioItemId");
@@ -91,6 +98,9 @@ static std::string boolToSelectedString(bool selected) {
     return selected ? GuiRenderer::TOGGLE_ACTION_SELECTED : GuiRenderer::TOGGLE_ACTION_DESELECTED;
 }
 
+static const std::string HEADER_LINE_URLENCODED = "Content-Type: application/x-www-form-urlencoded";
+
+
 GuiRenderer::GuiRenderer() {
     // initialize map
     m_guiToggleStateMap.insert(std::make_pair(TOGGLE_NAME_SHUFFLE, false));
@@ -146,7 +156,20 @@ void GuiRenderer::renderTemplateCard(const std::string& jsonPayload, avsCommon::
     buffer += "# Focus State         : " + focusStateToString(focusState) + "\n";
     buffer += "# Template Type       : " + templateType + "\n";
     buffer += "# Main Title          : " + mainTitle + "\n";
+    buffer += jsonPayload + "\n";
     buffer += RENDER_FOOTER;
+    std::string jsonBody;
+    jsonBody += "{ payload: ";
+    jsonBody += jsonPayload;
+    jsonBody += "}";
+    std::chrono::seconds timeout(10);
+    //const std::vector<std::string> headerLines = {"Content-Type: text/json"};
+    const std::vector<std::pair<std::string, std::string>> postData = {
+        {"card", jsonBody}
+    };
+    const std::vector<std::string> headerLines = {HEADER_LINE_URLENCODED};
+    auto r = HttpPost::create()->doPost("http://localhost:8080/refreshCardWithPayload", headerLines, postData, timeout);
+	ConsolePrinter::simplePrint(r.body);
 
 #ifdef ACSDK_EMIT_SENSITIVE_LOGS
     buffer += jsonPayload + "\n";

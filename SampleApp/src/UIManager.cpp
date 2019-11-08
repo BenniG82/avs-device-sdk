@@ -691,6 +691,7 @@ void UIManager::printState() {
                 return;
             case DialogUXState::LISTENING:
                 ConsolePrinter::prettyPrint("Listening...");
+		system("play /home/pi/med_ui_wakesound.wav");
                 return;
             case DialogUXState::EXPECTING:
                 ConsolePrinter::prettyPrint("Expecting...");
