@@ -20,6 +20,12 @@ set -o nounset  # Exit the script if any uninitialized variable is used.
 
 CLONE_URL=${CLONE_URL:- 'git://github.com/alexa/avs-device-sdk.git'}
 
+## Changes for Using Snowboy Wakeword/Hotword detection
+KWD_ENGINE="snowboy"
+KWD_ENGINE_SNOBOY_URL=https://github.com/Kitt-AI/snowboy.git
+KWD_ENGINE_MODEL_DIR=snowboy/resources
+KWD_ENGINE_UMDL_SRC=snowboy/resources/alexa/alexa-avs-sample-app/alexa.umdl
+
 PORT_AUDIO_FILE="pa_stable_v190600_20161030.tgz"
 PORT_AUDIO_DOWNLOAD_URL="http://www.portaudio.com/archives/$PORT_AUDIO_FILE"
 

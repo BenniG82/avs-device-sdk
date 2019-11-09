@@ -20,24 +20,35 @@ fi
 
 SOUND_CONFIG="$HOME/.asoundrc"
 START_SCRIPT="$INSTALL_BASE/startsample.sh"
-CMAKE_PLATFORM_SPECIFIC=(-DSENSORY_KEY_WORD_DETECTOR=ON \
-    -DGSTREAMER_MEDIA_PLAYER=ON -DPORTAUDIO=ON \
+CMAKE_PLATFORM_SPECIFIC=(-DGSTREAMER_MEDIA_PLAYER=ON -DPORTAUDIO=ON \
     -DPORTAUDIO_LIB_PATH="$THIRD_PARTY_PATH/portaudio/lib/.libs/libportaudio.$LIB_SUFFIX" \
-    -DPORTAUDIO_INCLUDE_DIR="$THIRD_PARTY_PATH/portaudio/include" \
-    -DSENSORY_KEY_WORD_DETECTOR_LIB_PATH=$THIRD_PARTY_PATH/alexa-rpi/lib/libsnsr.a \
+    -DPORTAUDIO_INCLUDE_DIR="$THIRD_PARTY_PATH/portaudio/include")
+
+if [ "${KWD_ENGINE}" = "snowboy" ]; then
+  CMAKE_PLATFORM_SPECIFIC=(-DKITTAI_KEY_WORD_DETECTOR=ON "${arr[@]}")
+    CMAKE_PLATFORM_SPECIFIC+=(-DKITTAI_KEY_WORD_DETECTOR_LIB_PATH=$THIRD_PARTY_PATH/snowboy/lib/rpi/libsnowboy-detect.a \
+    -DKITTAI_KEY_WORD_DETECTOR_INCLUDE_DIR=$THIRD_PARTY_PATH/snowboy/include)
+else
+  CMAKE_PLATFORM_SPECIFIC=(-DSENSORY_KEY_WORD_DETECTOR=ON "${arr[@]}")
+  CMAKE_PLATFORM_SPECIFIC+=(-DSENSORY_KEY_WORD_DETECTOR_LIB_PATH=$THIRD_PARTY_PATH/alexa-rpi/lib/libsnsr.a \
     -DSENSORY_KEY_WORD_DETECTOR_INCLUDE_DIR=$THIRD_PARTY_PATH/alexa-rpi/include)
+fi
 
 GSTREAMER_AUDIO_SINK="alsasink"
 
 install_dependencies() {
   sudo apt-get update
-  sudo apt-get -y install git gcc cmake build-essential libsqlite3-dev libcurl4-openssl-dev libssl-dev libfaad-dev libsoup2.4-dev libgcrypt20-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-good libasound2-dev sox gedit vim python3-pip
+  sudo apt-get -y install git gcc cmake build-essential libsqlite3-dev libcurl4-openssl-dev libssl-dev libfaad-dev libsoup2.4-dev libgcrypt20-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-good libasound2-dev sox gedit vim python3-pip python-pip libatlas-base-dev
   pip install flask commentjson
 }
 
 run_os_specifics() {
   build_port_audio
-  build_kwd_engine
+  if [ "${KWD_ENGINE}" = "snowboy" ]; then
+    build_kwd_engine_snowboy
+  else
+    build_kwd_engine
+  fi
   configure_sound
 }
 
@@ -70,6 +81,17 @@ build_kwd_engine() {
   cd $THIRD_PARTY_PATH
   git clone git://github.com/Sensory/alexa-rpi.git
   bash ./alexa-rpi/bin/license.sh
+}
+
+build_kwd_engine_snowboy() {
+  #get sensory and build
+  echo
+  echo "==============> CLONING AND BUILDING KITT.AI Snowboy =============="
+  echo
+
+  cd $THIRD_PARTY_PATH
+  git clone "${KWD_ENGINE_SNOBOY_URL}"
+  cp "${KWD_ENGINE_UMDL_SRC}" "${KWD_ENGINE_MODEL_DIR}"
 }
 
 generate_start_script() {
