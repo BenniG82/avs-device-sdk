@@ -1,3 +1,10 @@
+# This fork of the Alexa Voice SDK is used to provide http-callbacks on voice actions
+## Changes to the base version from Amazon
+- Uses kitt.ai Snowball instead of Sensory
+- Uses a http-callback function to post "results" to a local Webapp. This can be useful if you want to handle e.g. weather cards in a Java or nodeJs application
+- Some fixes in the Raspberry PI Documentation
+
+## The following is the original Readme from Amazon
 ### What is the Alexa Voice Service (AVS)?
 
 The Alexa Voice Service (AVS) enables developers to integrate Alexa directly into their products, bringing the convenience of voice control to any connected device. AVS provides developers with access to a suite of resources to build Alexa-enabled products, including APIs, hardware development kits, software development kits, and documentation.
